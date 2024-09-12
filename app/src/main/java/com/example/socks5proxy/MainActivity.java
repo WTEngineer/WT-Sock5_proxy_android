@@ -34,9 +34,21 @@ public class MainActivity extends AppCompatActivity {
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                startProxyServer();
             }
         });
 
+    }
+
+    private void startProxyServer() {           //Starts a new connection to the proxy server (SOCKS5 server or another server).
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (group != null) {
+            group.shutdownGracefully();
+        }
     }
 
 }

@@ -38,9 +38,51 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Socks5Server.main(null);  // Start the SOCKS5 server
+                    //WT_This thread starts the SOCKS5 server (Socks5Server.main(null)), so the server runs concurrently with the app.
+                } catch (InterruptedException e) {
+                    Log.e("Socks5Server", "Server interrupted", e);
+                }
+            }
+        }).start();
     }
 
     private void startProxyServer() {           //Starts a new connection to the proxy server (SOCKS5 server or another server).
+        group = new NioEventLoopGroup();        //A thread pool that handles network events.
+
+//        String host = "188.245.104.81";
+        String host = "192.168.8.165";
+        int port = 8000;
+
+        Bootstrap bootstrap = new Bootstrap();
+        bootstrap.group(new NioEventLoopGroup())
+                .channel(NioSocketChannel.class)
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel ch) throws Exception {
+                        ChannelPipeline p = ch.pipeline();
+                        p.addLast(new ByteInboundHandler(host, port, group));
+                    }
+                });
+
+        ChannelFuture future = bootstrap.connect(host, port);
+        future.addListener(f -> {
+            if (f.isSuccess()) {
+                runOnUiThread(() -> {
+                    // Update UI if needed, e.g., show a Toast
+                    // Toast.makeText(MainActivity.this, "Connected to " + host + ":" + port, Toast.LENGTH_SHORT).show();
+                });
+            } else {
+                runOnUiThread(() -> {
+                    // Update UI if needed, e.g., show an error Toast
+                    // Toast.makeText(MainActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
     @Override

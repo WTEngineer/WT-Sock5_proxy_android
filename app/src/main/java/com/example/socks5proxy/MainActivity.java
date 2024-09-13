@@ -93,4 +93,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private class ByteInboundHandler extends SimpleChannelInboundHandler<ByteBuf> {     //This class extends SimpleChannelInboundHandler<ByteBuf> to handle incoming data
+        private final String host;
+        private final int port;
+        private final NioEventLoopGroup group;
+
+        public ByteInboundHandler(String host, int port, NioEventLoopGroup group) {
+            this.host = host;
+            this.port = port;
+            this.group = group;
+        }
+
+        @Override
+        protected void channelRead0(ChannelHandlerContext ctx, ByteBuf in) throws Exception {       //This method is used to handle incoming data from a network connection.
+        }
+    }
 }

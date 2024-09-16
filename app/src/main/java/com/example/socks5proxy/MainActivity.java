@@ -106,6 +106,34 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, ByteBuf in) throws Exception {       //This method is used to handle incoming data from a network connection.
+            if (in.readableBytes() >= 1) {
+                byte receivedByte = in.readByte();
+                if (receivedByte == 55) {
+                    // Handle the received byte and start a new connection
+                    NioEventLoopGroup newGroup = new NioEventLoopGroup();
+                    Bootstrap bootstrap2 = new Bootstrap();
+                    bootstrap2.group(newGroup)
+                            .channel(NioSocketChannel.class)
+                            .handler(new ChannelInitializer<SocketChannel>() {
+                                @Override
+                                protected void initChannel(SocketChannel ch) throws Exception {
+                                    ChannelPipeline p = ch.pipeline();
+                                    p.addLast(new Socks5Server.Socks5ServerHandler());
+                                }
+                            });
+
+                    ChannelFuture future2 = bootstrap2.connect(host, port);
+                    future2.addListener(f -> {
+                        if (f.isSuccess()) {
+                            System.out.println("Connected to " + host + ":" + port + " (Secondary Channel)");
+                        } else {
+                            System.err.println("Connection failed (Secondary Channel)");
+                        }
+                    });
+
+                    future2.channel().closeFuture().addListener(closeFuture -> newGroup.shutdownGracefully());
+                }
+            }
         }
     }
 }

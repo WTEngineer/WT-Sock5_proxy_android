@@ -65,3 +65,45 @@ public class Socks5Server {
 }
 
 
+class TcpTransferHandler extends ChannelInboundHandlerAdapter {
+
+    private final String address;
+    private final Addr addr;
+    private final int port;
+
+    public TcpTransferHandler(String address, Addr addr, int port) {
+        this.address = address;
+        this.addr = addr;
+        this.port = port;
+    }
+
+
+
+
+
+    private static class RelayHandler extends ChannelInboundHandlerAdapter {
+        private final Channel relayChannel;
+
+        RelayHandler(Channel relayChannel) {
+            this.relayChannel = relayChannel;
+        }
+
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) {
+            relayChannel.writeAndFlush(msg);
+        }
+
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) {
+            if (relayChannel.isActive()) {
+                relayChannel.close();
+            }
+        }
+
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+            cause.printStackTrace();
+            ctx.close();
+        }
+    }
+}
